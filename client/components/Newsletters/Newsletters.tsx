@@ -9,8 +9,6 @@ import {
   IconSearch,
 } from "@tabler/icons-react";
 
-
-
 interface NewsletterSection {
   title: string;
   content: string;
@@ -184,8 +182,8 @@ export default function Newsletters() {
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
         newsletter.highlights.some((highlight) =>
-          highlight.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+          highlight.toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
     );
   };
 
@@ -208,96 +206,96 @@ export default function Newsletters() {
 
       {/* Content Container */}
       <div className="relative z-10 h-full overflow-y-auto flex flex-col pt-24">
-      {/* Content Container */}
-      <div className="flex-1 flex flex-col py-6">
-        {/* Header Section */}
-        <div className="text-center mb-8 px-4">
-          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-            Newsletter
-          </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto mb-6 text-base">
-            Access our comprehensive newsletter archive featuring detailed
-            regulatory updates, compliance guides, and industry insights.
-          </p>
+        {/* Content Container */}
+        <div className="flex-1 flex flex-col py-6">
+          {/* Header Section */}
+          <div className="text-center mb-8 px-4">
+            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+              Newsletter
+            </h2>
+            <p className="text-gray-300 max-w-2xl mx-auto mb-6 text-base">
+              Access our comprehensive newsletter archive featuring detailed
+              regulatory updates, compliance guides, and industry insights.
+            </p>
 
-          {/* Search Bar */}
-          <div className="max-w-md mx-auto">
-            <div className="relative">
-              <IconSearch className="absolute left-6 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search newsletters..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 text-base rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              />
+            {/* Search Bar */}
+            <div className="max-w-md mx-auto">
+              <div className="relative">
+                <IconSearch className="absolute left-6 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search newsletters..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 text-base rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Newsletters Grid Container */}
-        <div className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-7xl mx-auto">
-            {filteredNewsletters.length > 0 ? (
-              filteredNewsletters.map((newsletter, index) => (
-                <div
-                  key={newsletter.id}
-                  className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 group flex flex-col"
-                  style={{ animationDelay: `${index * 0.2}s` }}
-                >
-                  {/* Newsletter Header */}
-                  <div className="flex items-start space-x-3 mb-4">
-                    <div className="p-3 bg-orange-500/20 rounded-lg shrink-0">
-                      <IconFileText className="w-7 h-7 text-orange-500" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="text-xl font-bold text-white group-hover:text-orange-500 transition-colors leading-tight">
-                        {newsletter.title}
-                      </h3>
-                      <div className="flex items-center space-x-2 mt-2">
-                        <IconCalendar className="w-4 h-4 text-gray-400 shrink-0" />
-                        <span className="text-gray-400 text-sm">
-                          {newsletter.date}
-                        </span>
+          {/* Newsletters Grid Container */}
+          <div className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-7xl mx-auto">
+              {filteredNewsletters.length > 0 ? (
+                filteredNewsletters.map((newsletter, index) => (
+                  <div
+                    key={newsletter.id}
+                    className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 group flex flex-col"
+                    style={{ animationDelay: `${index * 0.2}s` }}
+                  >
+                    {/* Newsletter Header */}
+                    <div className="flex items-start space-x-3 mb-4">
+                      <div className="p-3 bg-orange-500/20 rounded-lg shrink-0">
+                        <IconFileText className="w-7 h-7 text-orange-500" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-xl font-bold text-white group-hover:text-orange-500 transition-colors leading-tight">
+                          {newsletter.title}
+                        </h3>
+                        <div className="flex items-center space-x-2 mt-2">
+                          <IconCalendar className="w-4 h-4 text-gray-400 shrink-0" />
+                          <span className="text-gray-400 text-sm">
+                            {newsletter.date}
+                          </span>
+                        </div>
                       </div>
                     </div>
+
+                    {/* Newsletter Description */}
+                    <p className="text-gray-300 leading-relaxed mb-6 text-sm flex-1 line-clamp-3">
+                      {newsletter.description.replace(/<[^>]*>/g, "")}
+                    </p>
+
+                    {/* Action Button */}
+                    <button
+                      onClick={() => handleViewNewsletter(newsletter)}
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2 group"
+                    >
+                      <IconEye className="w-5 h-5" />
+                      <span>View Details</span>
+                    </button>
                   </div>
-
-                  {/* Newsletter Description */}
-                  <p className="text-gray-300 leading-relaxed mb-6 text-sm flex-1">
-                    {newsletter.description}
+                ))
+              ) : (
+                <div className="col-span-1 lg:col-span-2 text-center py-12 px-4">
+                  <IconSearch className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    No newsletters found
+                  </h3>
+                  <p className="text-gray-400 text-base mb-4">
+                    Try adjusting your search terms or browse all available
+                    newsletters.
                   </p>
-
-                  {/* Action Button */}
                   <button
-                    onClick={() => handleViewNewsletter(newsletter)}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center justify-center space-x-2 group"
+                    onClick={() => setSearchTerm("")}
+                    className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-all duration-300"
                   >
-                    <IconEye className="w-5 h-5" />
-                    <span>View Details</span>
+                    Clear Search
                   </button>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-1 lg:col-span-2 text-center py-12 px-4">
-                <IconSearch className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  No newsletters found
-                </h3>
-                <p className="text-gray-400 text-base mb-4">
-                  Try adjusting your search terms or browse all available
-                  newsletters.
-                </p>
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-all duration-300"
-                >
-                  Clear Search
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </div>

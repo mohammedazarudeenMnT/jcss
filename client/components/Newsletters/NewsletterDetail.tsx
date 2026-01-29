@@ -74,56 +74,40 @@ export default function NewsletterDetail({ id }: NewsletterDetailProps) {
 
   // Function to render HTML content safely
   const renderHTMLContent = (htmlContent: string) => {
-    // Clean and format the HTML content
-    let cleanContent = htmlContent
-      // Fix malformed tags first
-      .replace(/<\/>/g, '') // Remove empty closing tags
-      .replace(/<h3>([^<]*)<\/>/g, '<h3>$1</h3>') // Fix malformed h3 tags
-      // Add proper table structure
-      .replace(/<tr>/g, '<tr class="border-b border-gray-600">')
-      .replace(/<th>/g, '<th class="border border-gray-600 px-3 py-2 bg-orange-500/20 text-orange-400 font-semibold text-left">')
-      .replace(/<td>/g, '<td class="border border-gray-600 px-3 py-2 text-gray-300">')
-      // Style other elements
-      .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-orange-500 my-4 border-b border-orange-500/30 pb-2">')
-      .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-white my-3">')
-      .replace(/<h4>/g, '<h4 class="text-lg font-medium text-orange-400 my-2">')
-      .replace(/<h5>/g, '<h5 class="text-base font-medium text-orange-300 my-2">')
-      .replace(/<p>/g, '<p class="text-gray-300 mb-3 leading-relaxed">')
-      .replace(/<ul>/g, '<ul class="list-disc list-inside text-gray-300 mb-3 space-y-1">')
-      .replace(/<ol>/g, '<ol class="list-decimal list-inside text-gray-300 mb-3 space-y-1">')
-      .replace(/<li>/g, '<li class="mb-1">')
-      .replace(/<a(\s|>)/g, '<a$1')
-      .replace(/<a([^>]*)>/g, '<a$1 class="text-blue-300 hover:text-blue-400 transition-colors">')
-      .replace(/<dl>/g, '<dl class="text-gray-300 mb-3">')
-      .replace(/<dt>/g, '<dt class="font-semibold text-orange-400 mb-1">')
-      .replace(/<dd>/g, '<dd class="mb-2 ml-4">');
-
-    // Handle tables - wrap orphaned tr elements in proper table structure
-    if (cleanContent.includes('<tr') && !cleanContent.includes('<table')) {
-      // Find all tr elements and wrap them in a table
-      cleanContent = cleanContent.replace(
-        /(<tr[^>]*>[\s\S]*?<\/tr>)/g,
-        (match, trContent) => {
-          if (!match.includes('<table')) {
-            return `<table class="w-full border-collapse border border-gray-600 mb-4 mt-4">
-              <tbody>${trContent}</tbody>
-            </table>`;
-          }
-          return match;
-        }
+    // Add premium newsletter styling classes to the HTML
+    const processedHtml = htmlContent
+      .replace(/<table/g, '<table class="NewsletterTable"')
+      .replace(/<tbody>/g, '<tbody class="divide-y divide-white/5">')
+      .replace(
+        /<a /g,
+        '<a class="text-orange-400 hover:text-orange-300 transition-all underline decoration-orange-400/30 underline-offset-4" ',
+      )
+      .replace(
+        /<ul>/g,
+        '<ul class="list-disc ml-8 mb-4 space-y-1 text-slate-300">',
+      )
+      .replace(
+        /<ol>/g,
+        '<ol class="list-decimal ml-8 mb-4 space-y-1 text-slate-300">',
+      )
+      .replace(
+        /<blockquote>/g,
+        '<blockquote class="border-l-4 border-orange-500 pl-6 italic my-6 text-lg text-slate-400 font-sans bg-slate-800/50 py-4 rounded-r-lg">',
+      )
+      .replace(
+        /<h2>/g,
+        '<h2 class="text-2xl font-bold text-orange-500 mb-4 mt-8 border-b border-orange-500/30 pb-2">',
+      )
+      .replace(/<h3>/g, '<h3 class="text-xl font-bold text-white mb-3 mt-6">')
+      .replace(
+        /<p>/g,
+        '<p class="mb-4 text-base leading-relaxed text-slate-300">',
       );
-    }
-
-    // If we have multiple consecutive tr elements, group them in one table
-    cleanContent = cleanContent.replace(
-      /(<table[^>]*><tbody>)(<tr[\s\S]*?<\/tr>)(<\/tbody><\/table>)(\s*)(<table[^>]*><tbody>)(<tr[\s\S]*?<\/tr>)(<\/tbody><\/table>)/g,
-      '$1$2$6$3'
-    );
 
     return (
-      <div 
-        className="prose prose-invert max-w-none"
-        dangerouslySetInnerHTML={{ __html: cleanContent }}
+      <div
+        className="lexical-content-output max-w-none"
+        dangerouslySetInnerHTML={{ __html: processedHtml }}
       />
     );
   };
@@ -256,39 +240,18 @@ export default function NewsletterDetail({ id }: NewsletterDetailProps) {
                       ))}
                     </div>
                   </div>
-                )
+                ),
               )
             ) : newsletter.content ? (
               // HTML content format (October/November)
               <div className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20">
-                <style jsx>{`
-                  table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 1rem 0;
-                  }
-                  th, td {
-                    border: 1px solid #4b5563;
-                    padding: 0.75rem;
-                    text-align: left;
-                  }
-                  th {
-                    background-color: rgba(249, 115, 22, 0.2);
-                    color: #fb923c;
-                    font-weight: 600;
-                  }
-                  td {
-                    color: #d1d5db;
-                  }
-                  tbody tr:hover {
-                    background-color: rgba(255, 255, 255, 0.05);
-                  }
-                `}</style>
                 {renderHTMLContent(newsletter.content)}
               </div>
             ) : (
               <div className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20">
-                <p className="text-gray-300">No content available for this newsletter.</p>
+                <p className="text-gray-300">
+                  No content available for this newsletter.
+                </p>
               </div>
             )}
           </div>
