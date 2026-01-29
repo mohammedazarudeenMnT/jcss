@@ -9,24 +9,20 @@ export const requireAuth = async (req, res, next) => {
     });
 
     if (!session || !session.user) {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Unauthorized: Authentication required",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Authentication required",
+      });
     }
 
     req.user = session.user;
     next();
   } catch (error) {
     console.error("Auth middleware error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Internal server error during authorization",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during authorization",
+    });
   }
 };
 
@@ -38,23 +34,52 @@ export const requireAdmin = async (req, res, next) => {
     });
 
     if (!session || !session.user || session.user.role !== "admin") {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Unauthorized: Admin access required",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: Admin access required",
+      });
     }
 
     req.user = session.user;
     next();
   } catch (error) {
     console.error("Auth middleware error:", error);
-    return res
-      .status(500)
-      .json({
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during authorization",
+    });
+  }
+};
+
+/**
+ * Middleware to check if the user is authenticated and has admin or employee role.
+ * Uses the better-auth session.
+ */
+export const requireAdminOrEmployee = async (req, res, next) => {
+  try {
+    const auth = initAuth();
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
+
+    if (
+      !session ||
+      !session.user ||
+      !["admin", "employee"].includes(session.user.role)
+    ) {
+      return res.status(403).json({
         success: false,
-        message: "Internal server error during authorization",
+        message: "Unauthorized: Admin or Employee access required",
       });
+    }
+
+    req.user = session.user;
+    next();
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error during authorization",
+    });
   }
 };
