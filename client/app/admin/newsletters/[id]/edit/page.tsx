@@ -5,7 +5,7 @@ import NewsletterForm from "@/components/Admin/NewsletterForm";
 import { useRouter } from "next/navigation";
 import type { Newsletter } from "@/lib/types/newsletter";
 import AdminFormHeader from "@/components/Admin/AdminFormHeader";
-
+import { getNewsletterById } from "@/lib/api/newsletter";
 export default function EditNewsletterPage({
   params,
 }: {
@@ -25,11 +25,9 @@ export default function EditNewsletterPage({
 
   async function loadNewsletter(newsletterId: string) {
     try {
-      const response = await fetch(`/api/newsletters/${newsletterId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setNewsletter(data);
-      }
+      const response = await getNewsletterById(newsletterId);
+      const data = await response;
+      setNewsletter(data);
     } catch (error) {
       console.error("Failed to load newsletter:", error);
     } finally {
@@ -70,7 +68,7 @@ export default function EditNewsletterPage({
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-200 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-3xl mx-auto">
+      <div className=" mx-auto">
         {/* Header */}
         <AdminFormHeader
           title="Edit Newsletter"

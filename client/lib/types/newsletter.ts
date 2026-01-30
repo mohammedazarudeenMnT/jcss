@@ -1,11 +1,12 @@
 export interface NewsletterSection {
-  id: string;
+  _id?: string;
   title: string;
   content: string;
 }
 
 export interface Newsletter {
   id: string;
+  _id?: string;
   title: string;
   slug: string;
   month: string;

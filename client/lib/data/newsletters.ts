@@ -61,12 +61,12 @@ export const newsletterDb = {
 
   update: (
     id: string,
-    input: Partial<CreateNewsletterInput> & { status?: string },
+    input: Partial<CreateNewsletterInput> & { status?: "draft" | "published" },
   ): Newsletter | undefined => {
     const index = newsletters.findIndex((n) => n.id === id);
     if (index === -1) return undefined;
 
-    const updated = {
+    const updated: Newsletter = {
       ...newsletters[index],
       ...input,
       updatedAt: new Date().toISOString(),

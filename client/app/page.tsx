@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import HomeScreens from '@/components/Home/HomeScreens';
-import Navigation from '@/components/Header/Navigation';
-import Header from '@/components/Header/Header';
-import { useGlobalScroll } from '@/components/GlobalScrollProvider';
+import { useState, useEffect } from "react";
+import HomeScreens from "@/components/Home/HomeScreens";
+import Navigation from "@/components/Header/Navigation";
+import Header from "@/components/Header/Header";
+import { useGlobalScroll } from "@/components/GlobalScrollProvider";
 
 export default function Home() {
-  const { currentScreen, setCurrentScreen, isTransitioning } = useGlobalScroll();
+  const { currentScreen, setCurrentScreen, isTransitioning } =
+    useGlobalScroll();
   const homeScreens = 4;
 
   const handleScreenChange = (newScreen: number) => {
@@ -16,19 +17,19 @@ export default function Home() {
   };
 
   return (
-    <div className="relative bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <main className="relative bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
       {/* Header - Show on all home screens */}
-      <Header/>
+      <Header />
 
       {/* Navigation Component - Always visible */}
       <Navigation />
 
       {/* Home Screens Section - Full Screen */}
-      <HomeScreens 
-        currentScreen={currentScreen} 
+      <HomeScreens
+        currentScreen={currentScreen}
         onScreenChange={handleScreenChange}
         isTransitioning={isTransitioning}
       />
-    </div>
+    </main>
   );
 }

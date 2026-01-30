@@ -3,9 +3,6 @@
 import {
   FileText,
   Settings,
-  BarChart3,
-  Home,
-  Menu,
   X,
   LogOut,
   ChevronLeft,
@@ -15,6 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -30,11 +28,12 @@ export default function AdminSidebar({
   onMobileToggle,
 }: AdminSidebarProps) {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   const menuItems = [
     { label: "Newsletters", href: "/admin/newsletters", icon: FileText },
 
-    { label: "Settings", href: "/admin/settings", icon: Settings },
+    // { label: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
   return (
@@ -158,6 +157,7 @@ export default function AdminSidebar({
               !isOpen && !isMobileOpen && "justify-center px-0",
             )}
             title="Log out"
+            onClick={logout}
           >
             <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-1" />
             {(isOpen || isMobileOpen) && (

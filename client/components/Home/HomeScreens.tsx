@@ -125,27 +125,26 @@ export default function HomeScreens({ currentScreen }: HomeScreensProps) {
 
       {/* Desktop Layout */}
       <div className="hidden sm:block">
-        <section className="fixed inset-0 h-screen w-screen overflow-hidden">
+        <main className="fixed inset-0 h-screen w-screen overflow-hidden">
           {/* ========================================================================== */}
           {/* ========================= SHARED BACKGROUND SECTION ==================== */}
           {/* ========================================================================== */}
 
-          {/* Background Image with Animation */}
-          <div className="absolute inset-0 z-0 overflow-hidden">
+          <section className="absolute inset-0 z-0 overflow-hidden">
             <div
               className={`absolute inset-0 transition-all duration-2000 ease-in-out ${
                 currentScreen === 0
                   ? "scale-175 translate-x-0 rotate-0"
                   : currentScreen === 1
-                  ? "scale-150 translate-x-2 rotate-1"
-                  : currentScreen === 2
-                  ? "scale-125 translate-x-3 rotate-2"
-                  : "scale-110 translate-x-3 rotate-3"
+                    ? "scale-150 translate-x-2 rotate-1"
+                    : currentScreen === 2
+                      ? "scale-125 translate-x-3 rotate-2"
+                      : "scale-110 translate-x-3 rotate-3"
               }`}
             >
               <Image
                 src="/images/home.jpg"
-                alt="JCSS Background"
+                alt="Professional Business Environment"
                 fill
                 className="object-cover"
                 priority
@@ -153,44 +152,27 @@ export default function HomeScreens({ currentScreen }: HomeScreensProps) {
             </div>
             {/* Black Overlay */}
             <div className="absolute inset-0 bg-black/50 z-10"></div>
-          </div>
-
-          {/* ========================================================================== */}
-          {/* ========================= SCREEN 1 SECTION ============================= */}
-          {/* ========================= Welcome Introduction ========================== */}
-          {/* ========================================================================== */}
-
-          {/* Screen 1: No specific elements - uses shared content container only */}
-
-          {/* ========================================================================== */}
-          {/* ========================= SCREEN 2 SECTION ============================= */}
-          {/* ========================= Welcome with Left Button ===================== */}
-          {/* ========================================================================== */}
+          </section>
 
           {/* Screen 2 - Let's Talk Button (Left Side) */}
           {currentScreen === 1 && (
-            <div className="fixed left-0 top-1/2 -translate-y-1/2 z-30 opacity-100 translate-x-0 transition-all duration-1000 ease-in-out">
+            <aside className="fixed left-0 top-1/2 -translate-y-1/2 z-30 opacity-100 translate-x-0 transition-all duration-1000 ease-in-out">
               <button className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-8 rounded-r-full font-normal text-xl shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-3">
                 <IconMessage size={24} stroke={2} />
                 <span>Let&apos;s Talk</span>
               </button>
-            </div>
+            </aside>
           )}
 
-          {/* ========================================================================== */}
-          {/* ========================= SHARED CONTENT SECTION ======================= */}
-          {/* ========================= Logo & Dynamic Text =========================== */}
-          {/* ========================================================================== */}
-
           {/* Content Container */}
-          <div className="relative z-10 h-screen flex items-center justify-end pr-8 sm:pr-24 lg:pr-32">
+          <article className="relative z-10 h-screen flex items-center justify-end pr-8 sm:pr-24 lg:pr-32">
             <div className="text-right max-w-4xl flex flex-col justify-center w-full">
               {/* Logo - SVG (Shared across all screens) */}
               <div className="mb-8 animate-fade-in flex flex-col items-end">
                 <div className="mb-4 pr-2">
                   <Image
                     src="/svg/logo.svg"
-                    alt="JCSS Logo"
+                    alt="JCSS Consulting"
                     width={360}
                     height={180}
                     className="w-auto h-28 md:h-28 rounded-sm"
@@ -204,21 +186,16 @@ export default function HomeScreens({ currentScreen }: HomeScreensProps) {
                 key={currentScreen}
                 className="text-slate-200 animate-fade-in-up relative pr-2"
               >
-                <p className="text-base leading-relaxed">
+                <h2 className="text-base leading-relaxed">
                   <span className="font-semibold text-white">
                     {currentScreenData.heading}
                   </span>{" "}
                   {currentScreenData.subheading}
-                </p>
-
-                {/* ========================================================================== */}
-                {/* ========================= SCREEN 3 SECTION ============================= */}
-                {/* ========================= Our Journey with Timeline ==================== */}
-                {/* ========================================================================== */}
+                </h2>
 
                 {/* Screen 3 - Timeline Section */}
                 {currentScreenData.showTimeline && (
-                  <div className="relative mt-4 pt-8 animate-fade-in-up animation-delay-200 mb-12 w-full max-w-7xl">
+                  <section className="relative mt-4 pt-8 animate-fade-in-up animation-delay-200 mb-12 w-full max-w-7xl">
                     <div className="relative px-6 py-6 max-w-5xl mr-10">
                       {/* Main dotted line */}
                       <div
@@ -228,7 +205,7 @@ export default function HomeScreens({ currentScreen }: HomeScreensProps) {
                             "repeating-linear-gradient(to right, #64748b 0px, #64748b 4px, transparent 4px, transparent 8px)",
                           height: "2px",
                         }}
-                      ></div>
+                      />
 
                       {/* Timeline points container */}
                       <div className="flex justify-between items-center relative">
@@ -265,76 +242,35 @@ export default function HomeScreens({ currentScreen }: HomeScreensProps) {
                             >
                               {/* Outer ring for hover effect */}
                               {hoveredYear === item.year && (
-                                <div className="absolute inset-0 rounded-full border-2 border-orange-300 scale-150 animate-pulse"></div>
+                                <div className="absolute inset-0 rounded-full border-2 border-orange-300 scale-150 animate-pulse" />
                               )}
                             </div>
 
                             {/* Hover Tooltip - Bottom positioned */}
                             {hoveredYear === item.year && (
-                              <div className="absolute top-full mt-6 left-1/2 transform -translate-x-1/2 w-56 bg-slate-800/95 backdrop-blur-sm border border-orange-500/30 rounded-lg p-4 shadow-2xl animate-fade-in-up z-50">
+                              <aside className="absolute top-full mt-6 left-1/2 transform -translate-x-1/2 w-56 bg-slate-800/95 backdrop-blur-sm border border-orange-500/30 rounded-lg p-4 shadow-2xl animate-fade-in-up z-50">
                                 <div className="text-center">
-                                  <h4 className="text-orange-400 font-bold text-base mb-2">
+                                  <h3 className="text-orange-400 font-bold text-base mb-2">
                                     {item.title}
-                                  </h4>
+                                  </h3>
                                   <p className="text-slate-200 text-sm leading-relaxed">
                                     {item.description}
                                   </p>
                                 </div>
                                 {/* Arrow pointing up */}
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-slate-800/95"></div>
-                              </div>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-slate-800/95" />
+                              </aside>
                             )}
                           </div>
                         ))}
                       </div>
                     </div>
-                  </div>
+                  </section>
                 )}
               </div>
             </div>
-          </div>
-
-          {/* ========================================================================== */}
-          {/* ========================= SCREEN 3 & 4 SECTION ========================= */}
-          {/* ========================= Bottom Right Button =========================== */}
-          {/* ========================================================================== */}
-
-          {/* Screen 3 & 4 - Let's Talk Button (Fixed Bottom Right Corner) */}
-          {/* {(currentScreen === 2 || currentScreen === 3) && (
-            <div
-              className="fixed bottom-8 right-20 z-50 animate-fade-in-up animation-delay-500"
-              key={`button-${currentScreen}`}
-            >
-              <button className="bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-2xl transition-all duration-500 hover:scale-110 flex items-center justify-center w-24 h-24 animate-bounce-slow hover:animate-pulse transform-gpu">
-                <div className="flex flex-col items-center transition-all duration-300">
-                  <svg
-                    className="w-10 h-10 mb-1 transition-transform duration-300 hover:rotate-12"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                    />
-                  </svg>
-                  <span className="text-xs font-semibold transition-all duration-300 hover:text-orange-100">
-                    Let&apos;s Talk
-                  </span>
-                </div>
-              </button>
-            </div>
-          )} */}
-
-          {/* ========================================================================== */}
-          {/* ========================= SCREEN 4 SECTION ============================= */}
-          {/* ========================= Our Promise ================================== */}
-          {/* ========================================================================== */}
-
-          {/* Screen 4: No specific elements - uses shared content container and bottom right button */}
-        </section>
+          </article>
+        </main>
       </div>
     </>
   );

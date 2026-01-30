@@ -1,47 +1,54 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { IconCalendar, IconArrowLeft, IconFileText } from "@tabler/icons-react";
 import Link from "next/link";
-import { november2025Newsletter } from "@/components/Newsletters/november2025";
-import { october2025Newsletter } from "@/components/Newsletters/october2025";
-import { december2025Newsletter } from "@/components/Newsletters/december2025";
-
-interface ContentItem {
-  heading: string;
-  subheading: string;
-  content: string;
-}
-
-interface Section {
-  title: string;
-  content: ContentItem[];
-}
-
-interface Newsletter {
-  title: string;
-  date: string;
-  sections?: Record<string, Section>;
-  content?: string; // For HTML content format
-}
+import { getNewsletterBySlug } from "@/lib/api/newsletter";
+import type { Newsletter } from "@/lib/types/newsletter";
 
 interface NewsletterDetailProps {
-  id: string;
+  slug: string;
+  initialData?: Newsletter;
 }
 
-const newsletterData: Record<string, Newsletter> = {
-  "december-2025": december2025Newsletter,
-  "november-2025": november2025Newsletter,
-  "october-2025": october2025Newsletter,
-};
+export default function NewsletterDetail({
+  slug,
+  initialData,
+}: NewsletterDetailProps) {
+  const [newsletter, setNewsletter] = useState<Newsletter | null>(
+    initialData || null,
+  );
+  const [loading, setLoading] = useState(!initialData);
 
-export default function NewsletterDetail({ id }: NewsletterDetailProps) {
-  const newsletter = newsletterData[id];
+  useEffect(() => {
+    if (initialData) return;
+
+    async function load() {
+      try {
+        const data = await getNewsletterBySlug(slug);
+        setNewsletter(data);
+      } catch (error) {
+        console.error("Failed to load newsletter:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [slug, initialData]);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 min-h-screen w-screen bg-[#1d4e77] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
 
   if (!newsletter) {
     return (
       <div className="fixed inset-0 min-h-screen w-screen bg-[#1d4e77]">
-        {/* Background Image - Fixed */}
+        {/* Background Image */}
         <div className="fixed inset-0 z-0">
           <Image
             src="/images/newss.jpg"
@@ -74,47 +81,84 @@ export default function NewsletterDetail({ id }: NewsletterDetailProps) {
 
   // Function to render HTML content safely
   const renderHTMLContent = (htmlContent: string) => {
-    // Add premium newsletter styling classes to the HTML
-    const processedHtml = htmlContent
-      .replace(/<table/g, '<table class="NewsletterTable"')
-      .replace(/<tbody>/g, '<tbody class="divide-y divide-white/5">')
+    // Clean and format the HTML content
+    let cleanContent = htmlContent
+      // Fix malformed tags first
+      .replace(/<\/>/g, "") // Remove empty closing tags
+      .replace(/<h3>([^<]*)<\/>/g, "<h3>$1</h3>") // Fix malformed h3 tags
+      // Add proper table structure
+      .replace(/<tr>/g, '<tr class="border-b border-gray-600">')
       .replace(
-        /<a /g,
-        '<a class="text-orange-400 hover:text-orange-300 transition-all underline decoration-orange-400/30 underline-offset-4" ',
+        /<th>/g,
+        '<th class="border border-gray-600 px-3 py-2 bg-orange-500/20 text-orange-400 font-semibold text-left">',
       )
       .replace(
+        /<td>/g,
+        '<td class="border border-gray-600 px-3 py-2 text-gray-300">',
+      )
+      // Style other elements
+      .replace(
+        /<h2>/g,
+        '<h2 class="text-2xl font-bold text-orange-500 my-4 border-b border-orange-500/30 pb-2">',
+      )
+      .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-white my-3">')
+      .replace(/<h4>/g, '<h4 class="text-lg font-medium text-orange-400 my-2">')
+      .replace(
+        /<h5>/g,
+        '<h5 class="text-base font-medium text-orange-300 my-2">',
+      )
+      .replace(/<p>/g, '<p class="text-gray-300 mb-3 leading-relaxed">')
+      .replace(
         /<ul>/g,
-        '<ul class="list-disc ml-8 mb-4 space-y-1 text-slate-300">',
+        '<ul class="list-disc list-inside text-gray-300 mb-3 space-y-1">',
       )
       .replace(
         /<ol>/g,
-        '<ol class="list-decimal ml-8 mb-4 space-y-1 text-slate-300">',
+        '<ol class="list-decimal list-inside text-gray-300 mb-3 space-y-1">',
       )
+      .replace(/<li>/g, '<li class="mb-1">')
+      .replace(/<a(\s|>)/g, "<a$1")
       .replace(
-        /<blockquote>/g,
-        '<blockquote class="border-l-4 border-orange-500 pl-6 italic my-6 text-lg text-slate-400 font-sans bg-slate-800/50 py-4 rounded-r-lg">',
+        /<a([^>]*)>/g,
+        '<a$1 class="text-blue-300 hover:text-blue-400 transition-colors">',
       )
-      .replace(
-        /<h2>/g,
-        '<h2 class="text-2xl font-bold text-orange-500 mb-4 mt-8 border-b border-orange-500/30 pb-2">',
-      )
-      .replace(/<h3>/g, '<h3 class="text-xl font-bold text-white mb-3 mt-6">')
-      .replace(
-        /<p>/g,
-        '<p class="mb-4 text-base leading-relaxed text-slate-300">',
+      .replace(/<dl>/g, '<dl class="text-gray-300 mb-3">')
+      .replace(/<dt>/g, '<dt class="font-semibold text-orange-400 mb-1">')
+      .replace(/<dd>/g, '<dd class="mb-2 ml-4">');
+
+    // Handle tables - wrap orphaned tr elements in proper table structure
+    if (cleanContent.includes("<tr") && !cleanContent.includes("<table")) {
+      // Find all tr elements and wrap them in a table
+      cleanContent = cleanContent.replace(
+        /(<tr[^>]*>[\s\S]*?<\/tr>)/g,
+        (match, trContent) => {
+          if (!match.includes("<table")) {
+            return `<table class="w-full border-collapse border border-gray-600 mb-4 mt-4">
+              <tbody>${trContent}</tbody>
+            </table>`;
+          }
+          return match;
+        },
       );
+    }
+
+    // If we have multiple consecutive tr elements, group them in one table
+    cleanContent = cleanContent.replace(
+      /(<table[^>]*><tbody>)(<tr[\s\S]*?<\/tr>)(<\/tbody><\/table>)(\s*)(<table[^>]*><tbody>)(<tr[\s\S]*?<\/tr>)(<\/tbody><\/table>)/g,
+      "$1$2$6$3",
+    );
 
     return (
       <div
-        className="lexical-content-output max-w-none"
-        dangerouslySetInnerHTML={{ __html: processedHtml }}
+        className="prose prose-invert max-w-none"
+        dangerouslySetInnerHTML={{ __html: cleanContent }}
       />
     );
   };
 
   return (
     <div className="fixed inset-0 min-h-screen w-screen bg-[#1d4e77]">
-      {/* Background Image - Fixed */}
+      {/* Background Image */}
       <div className="fixed inset-0 z-0">
         <Image
           src="/images/newss.jpg"
@@ -128,8 +172,8 @@ export default function NewsletterDetail({ id }: NewsletterDetailProps) {
       </div>
 
       {/* Content Container - Scrollable */}
-      <div className="relative z-10 h-full overflow-y-auto pt-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <main className="relative z-10 h-full overflow-y-auto pt-16">
+        <article className="container mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           {/* Back Button */}
           <div className="my-10 sm:my-8 pt-5">
             <Link
@@ -142,7 +186,7 @@ export default function NewsletterDetail({ id }: NewsletterDetailProps) {
           </div>
 
           {/* Newsletter Header */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 mb-6 sm:mb-8">
+          <header className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20 mb-6 sm:mb-8">
             <div className="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
               <div className="flex items-center space-x-3 sm:space-x-4">
                 <div className="p-2 sm:p-3 lg:p-4 bg-orange-500/20 rounded-lg shrink-0">
@@ -155,98 +199,31 @@ export default function NewsletterDetail({ id }: NewsletterDetailProps) {
             </div>
             <div className="flex items-center space-x-2 text-gray-300 mt-3 sm:mt-4">
               <IconCalendar className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-              <span className="text-base sm:text-lg">{newsletter.date}</span>
+              <time
+                dateTime={`${newsletter.year}-${newsletter.month}`}
+                className="text-base sm:text-lg"
+              >
+                {newsletter.month} {newsletter.year}
+              </time>
             </div>
-          </div>
+          </header>
 
           {/* Newsletter Content */}
           <div className="space-y-6 sm:space-y-8">
-            {newsletter.sections ? (
-              // Structured content format (December)
-              Object.entries(newsletter.sections).map(
-                ([sectionKey, section]) => (
-                  <div
-                    key={sectionKey}
-                    className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20"
-                  >
-                    <h2 className="text-xl sm:text-2xl font-bold text-orange-500 mb-4 sm:mb-6 border-b border-orange-500/30 pb-2 sm:pb-3">
-                      {section.title}
-                    </h2>
-
-                    <div className="space-y-4 sm:space-y-6">
-                      {section.content.map((item, index) => (
-                        <div key={index} className="space-y-3 sm:space-y-4">
-                          <h3 className="text-lg sm:text-xl font-semibold text-white leading-tight">
-                            {item.heading}
-                          </h3>
-
-                          {item.subheading && (
-                            <h4 className="text-base sm:text-lg font-medium text-orange-400">
-                              {item.subheading}
-                            </h4>
-                          )}
-
-                          <div className="text-gray-300 leading-relaxed text-sm sm:text-base">
-                            {item.content
-                              .split("\n\n")
-                              .map((paragraph, pIndex) => (
-                                <div key={pIndex} className="mb-3 sm:mb-4">
-                                  {paragraph.split("\n").map((line, lIndex) => {
-                                    // Handle bullet points
-                                    if (line.startsWith("• ")) {
-                                      return (
-                                        <div
-                                          key={lIndex}
-                                          className="flex items-start space-x-2 mb-2"
-                                        >
-                                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full mt-2 shrink-0"></div>
-                                          <span className="text-sm sm:text-base">
-                                            {line.substring(2)}
-                                          </span>
-                                        </div>
-                                      );
-                                    }
-                                    // Handle numbered lists
-                                    if (/^\d+\./.test(line)) {
-                                      return (
-                                        <div
-                                          key={lIndex}
-                                          className="mb-2 ml-3 sm:ml-4"
-                                        >
-                                          <span className="text-orange-400 font-medium text-sm sm:text-base">
-                                            {line}
-                                          </span>
-                                        </div>
-                                      );
-                                    }
-                                    // Regular paragraphs
-                                    return line ? (
-                                      <p
-                                        key={lIndex}
-                                        className="mb-2 text-sm sm:text-base"
-                                      >
-                                        {line}
-                                      </p>
-                                    ) : null;
-                                  })}
-                                </div>
-                              ))}
-                          </div>
-
-                          {index < section.content.length - 1 && (
-                            <hr className="border-gray-600/30 my-4 sm:my-6" />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ),
-              )
-            ) : newsletter.content ? (
-              // HTML content format (October/November)
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20">
-                {renderHTMLContent(newsletter.content)}
-              </div>
+            {newsletter.sections && newsletter.sections.length > 0 ? (
+              // Structured content format
+              newsletter.sections.map((section, index) => (
+                <section
+                  key={section._id || `section-${index}`}
+                  className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20"
+                >
+                  <h2 className="text-xl sm:text-2xl font-bold text-orange-500 mb-4 sm:mb-6 border-b border-orange-500/30 pb-2 sm:pb-3">
+                    {section.title}
+                  </h2>
+                  {/* Assuming section.content is HTML strings based on previous context, or use renderHTML if it's raw HTML */}
+                  {renderHTMLContent(section.content)}
+                </section>
+              ))
             ) : (
               <div className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/20">
                 <p className="text-gray-300">
@@ -255,8 +232,8 @@ export default function NewsletterDetail({ id }: NewsletterDetailProps) {
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </article>
+      </main>
     </div>
   );
 }
