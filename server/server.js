@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import { toNodeHandler } from "better-auth/node";
 import { initAuth } from "./src/lib/auth.js";
 import authRoutes from "./src/routes/auth.routes.js";
+import newsletterRoutes from "./src/routes/newsletter.routes.js";
 
 dotenv.config();
 
@@ -77,6 +78,7 @@ const startServer = async () => {
     app.use(express.urlencoded({ limit: "10mb", extended: true }));
     // Custom Auth Routes (for any additional custom endpoints - these will override Better Auth if same path)
     app.use("/api/auth", authRoutes);
+    app.use("/api/newsletters", newsletterRoutes);
 
     // Start listening AFTER routes are registered
     app.listen(PORT, () => {
