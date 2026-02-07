@@ -35,6 +35,10 @@ const adminWhitelist = {
             // In v1 internalAdapter, findUserByEmail returns { user, accounts }
             const result =
               await ctx.context.internalAdapter.findUserByEmail(email);
+            console.log(
+              `🔍 DEBUG findUserByEmail(${email}):`,
+              JSON.stringify(result, null, 2),
+            );
             const user = result?.user;
             const accounts = result?.accounts || [];
 
@@ -56,22 +60,35 @@ const adminWhitelist = {
 
             try {
               if (!user) {
-                console.log(`👤 Creating new admin user record...`);
-                await ctx.context.internalAdapter.createUser({
+                console.log(`👤 Creating new admin user (without password)...`);
+                // Create user WITHOUT password - we'll add credential account separately
+                const newUser = await ctx.context.internalAdapter.createUser({
                   email,
-                  password,
                   name: name || email.split("@")[0],
                   emailVerified: true,
                   role: "admin",
                 });
+
+                const newUserId = newUser.id || newUser._id;
+                console.log(`✅ User created with ID: ${newUserId}`);
+
+                // Now create the credential account
+                const hashedPassword =
+                  await ctx.context.password.hash(password);
+                await ctx.context.internalAdapter.createAccount({
+                  userId: String(newUserId),
+                  providerId: "credential",
+                  accountId: email,
+                  password: hashedPassword,
+                });
+                console.log(`✅ Credential account linked for new user.`);
               } else {
                 const userId = user.id || user._id;
                 console.log(
-                  `� User exists (ID: ${userId}), cleaning up stale accounts...`,
+                  `👤 User exists (ID: ${userId}), cleaning up stale accounts...`,
                 );
 
-                // 1. Delete ANY existing account with this accountId and provider 'email'
-                // to ensure we start fresh and avoid duplicates or broken links
+                // Delete any existing credential account to ensure clean state
                 try {
                   const stale = await ctx.context.internalAdapter.findAccount({
                     accountId: email,
@@ -89,10 +106,9 @@ const adminWhitelist = {
                   // Ignore cleanup errors
                 }
 
+                // Create fresh credential account
                 const hashedPassword =
                   await ctx.context.password.hash(password);
-
-                // Use plain string userId - adapter handles conversion internally
                 const accountData = {
                   userId: String(userId),
                   providerId: "credential",
@@ -100,12 +116,12 @@ const adminWhitelist = {
                   password: hashedPassword,
                 };
 
-                console.log(`🔗 Creating credential account for admin...`);
+                console.log(
+                  `🔗 Creating credential account for existing user...`,
+                );
                 await ctx.context.internalAdapter.createAccount(accountData);
                 console.log(`✅ Credential account linked successfully.`);
               }
-
-              await new Promise((r) => setTimeout(r, 500));
             } catch (err) {
               console.error(`❌ Admin auto-setup failed:`, err.message);
             }
