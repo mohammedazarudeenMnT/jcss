@@ -55,7 +55,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row bg-white overflow-hidden p-0 m-0">
       {/* Visual Identity Section - Now visible on mobile as a top banner, and side-by-side on desktop */}
-      <div className="relative w-full md:w-1/2 lg:w-[60%] h-[30vh] md:h-screen overflow-hidden group bg-[#020617]">
+      <div className="relative w-full hidden sm:flex md:w-1/2 lg:w-[60%]  md:h-screen overflow-hidden group bg-[#020617]">
         <div className="absolute inset-0 transition-transform duration-[20s] ease-linear group-hover:scale-110">
           <Image
             src="/images/login-bg-premium.png"
@@ -83,11 +83,6 @@ export default function LoginPage() {
         </div>
 
         {/* Floating Accent - Hidden on small mobile */}
-        <div className="hidden sm:block absolute top-6 left-6 md:top-12 md:left-12 p-3 md:p-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl animate-pulse-slow z-10">
-          <p className="text-[8px] md:text-[10px] text-white/50 uppercase tracking-[0.3em] font-bold">
-            Priority Access
-          </p>
-        </div>
       </div>
 
       {/* Authentication Section - Right Side */}
