@@ -29,17 +29,23 @@ export default function LoginForm({ redirect }: LoginFormProps) {
     e?.preventDefault();
     setLoading(true);
     setError(null);
+
     try {
       const response = await login(email, password);
-      if (response.success && response.data?.user) {
+      // login() throws on error, so if we reach here, login succeeded
+      if (response.data?.user) {
         authLogin(response.data.user);
         router.push(redirect || "/admin");
       } else {
-        setError(response.message || "Invalid credentials");
+        setError("Login succeeded but no user data received");
       }
     } catch (err) {
-      const errorObj = err instanceof Error ? err : new Error(String(err));
-      setError(errorObj.message || "Login failed");
+      // Error is thrown by login() function
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Login failed. Please check your credentials.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -113,13 +119,13 @@ export default function LoginForm({ redirect }: LoginFormProps) {
             >
               Secure Password
             </Label>
-            <button
+            {/* <button
               type="button"
               className="text-[10px] font-black text-slate-400 hover:text-orange-500 transition-colors uppercase tracking-widest"
               onClick={() => router.push("/forgot-password")}
             >
               Reset?
-            </button>
+            </button> */}
           </div>
           <div className="relative group/input">
             <Input
@@ -246,7 +252,7 @@ export default function LoginForm({ redirect }: LoginFormProps) {
             <button
               type="button"
               className="text-orange-500 font-black hover:underline underline-offset-4"
-              onClick={() => router.push("/signup")}
+              onClick={() => router.push("/contact-us")}
             >
               Contact JCSS Admin
             </button>

@@ -2,6 +2,7 @@ import { Metadata, ResolvingMetadata } from "next";
 import NewsletterDetail from "@/components/Newsletters/NewsletterDetail";
 import Header from "@/components/Header/Header";
 import { getNewsletterBySlug } from "@/lib/api/newsletter";
+import ScrollablePageProvider from "@/components/ScrollablePageProvider";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -59,7 +60,7 @@ export default async function NewsletterDetailPage({ params }: Props) {
     : null;
 
   return (
-    <>
+    <ScrollablePageProvider>
       {jsonLd && (
         <script
           type="application/ld+json"
@@ -68,6 +69,6 @@ export default async function NewsletterDetailPage({ params }: Props) {
       )}
       <Header />
       <NewsletterDetail slug={slug} initialData={newsletter ?? undefined} />
-    </>
+    </ScrollablePageProvider>
   );
 }

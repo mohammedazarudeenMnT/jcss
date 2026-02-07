@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Newsletters from "@/components/Newsletters/Newsletters";
 import Header from "@/components/Header/Header";
 import Navigation from "@/components/Header/Navigation";
+import ScrollablePageProvider from "@/components/ScrollablePageProvider";
 
 export const metadata: Metadata = {
   title: "Newsletter Archive",
@@ -11,10 +12,12 @@ export const metadata: Metadata = {
 
 export default function NewslettersPage() {
   return (
-    <main className="min-h-screen bg-[#1d4e77]">
-      <Navigation />
-      <Header />
-      <Newsletters />
-    </main>
+    <ScrollablePageProvider>
+      <main className="min-h-screen bg-[#1d4e77]">
+        <Navigation />
+        <Header />
+        <Newsletters />
+      </main>
+    </ScrollablePageProvider>
   );
 }

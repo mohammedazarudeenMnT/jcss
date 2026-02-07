@@ -5,11 +5,170 @@ import mongoose from "mongoose";
 
 let authInstance = null;
 
+/**
+ * Helper to check if an email is in the admin whitelist
+ */
+const isAdmin = (email) => {
+  if (!email) return false;
+  const adminEmails = (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase());
+  return adminEmails.includes(email.toLowerCase());
+};
+
+/**
+ * Plugin to enforce admin roles based on .env whitelist
+ * This plugin converts sign-in attempts for admin emails into sign-up attempts
+ */
+const adminWhitelist = {
+  id: "admin-whitelist",
+  hooks: {
+    before: [
+      {
+        matcher: (ctx) => ctx.path.includes("/sign-in/email"),
+        handler: async (ctx) => {
+          const { email, password, name } = ctx.body || {};
+
+          if (isAdmin(email) && password) {
+            console.log(`🛡️ Whitelisted admin sign-in attempt: ${email}`);
+
+            // In v1 internalAdapter, findUserByEmail returns { user, accounts }
+            const result =
+              await ctx.context.internalAdapter.findUserByEmail(email);
+            const user = result?.user;
+            const accounts = result?.accounts || [];
+
+            // Check if a VALID account already exists
+            const validAccount = accounts.find(
+              (a) =>
+                (a.providerId === "credential" ||
+                  a.provider === "credential") &&
+                user &&
+                String(a.userId) === String(user.id || user._id),
+            );
+
+            if (validAccount) {
+              console.log(`✅ Admin already has a valid credential account.`);
+              return ctx;
+            }
+
+            console.log(`🚀 Linking/Registering admin: ${email}...`);
+
+            try {
+              if (!user) {
+                console.log(`👤 Creating new admin user record...`);
+                await ctx.context.internalAdapter.createUser({
+                  email,
+                  password,
+                  name: name || email.split("@")[0],
+                  emailVerified: true,
+                  role: "admin",
+                });
+              } else {
+                const userId = user.id || user._id;
+                console.log(
+                  `� User exists (ID: ${userId}), cleaning up stale accounts...`,
+                );
+
+                // 1. Delete ANY existing account with this accountId and provider 'email'
+                // to ensure we start fresh and avoid duplicates or broken links
+                try {
+                  const stale = await ctx.context.internalAdapter.findAccount({
+                    accountId: email,
+                    providerId: "credential",
+                  });
+                  if (stale) {
+                    console.log(
+                      `🗑️ Deleting stale account: ${stale.id || stale._id}`,
+                    );
+                    await ctx.context.internalAdapter.deleteAccount({
+                      id: stale.id || stale._id,
+                    });
+                  }
+                } catch (e) {
+                  // Ignore cleanup errors
+                }
+
+                const hashedPassword =
+                  await ctx.context.password.hash(password);
+
+                // Use plain string userId - adapter handles conversion internally
+                const accountData = {
+                  userId: String(userId),
+                  providerId: "credential",
+                  accountId: email,
+                  password: hashedPassword,
+                };
+
+                console.log(`🔗 Creating credential account for admin...`);
+                await ctx.context.internalAdapter.createAccount(accountData);
+                console.log(`✅ Credential account linked successfully.`);
+              }
+
+              await new Promise((r) => setTimeout(r, 500));
+            } catch (err) {
+              console.error(`❌ Admin auto-setup failed:`, err.message);
+            }
+          }
+          return ctx;
+        },
+      },
+    ],
+    after: [
+      {
+        matcher: (ctx) =>
+          ctx.path.endsWith("/get-session") ||
+          ctx.path.endsWith("/sign-in/email") ||
+          ctx.path.endsWith("/sign-up/email"),
+        handler: async (ctx) => {
+          // Surgically modify the user object if it exists in the response
+          // Better Auth v1 stores the result in ctx.data
+          if (ctx.data && typeof ctx.data === "object" && ctx.data.user) {
+            const email = ctx.data.user.email;
+            if (isAdmin(email)) {
+              ctx.data.user.role = "admin";
+            } else if (ctx.data.user.role === "admin") {
+              // Strict enforcement: demote if not in .env whitelist
+              ctx.data.user.role = "user";
+            }
+          }
+          return ctx;
+        },
+      },
+    ],
+  },
+};
+
 export const initAuth = () => {
   if (authInstance) return authInstance;
 
   authInstance = betterAuth({
     database: mongodbAdapter(mongoose.connection.getClient().db("jcss")), // Using "jcss" as db name
+
+    databaseHooks: {
+      "user.create.before": async (ctx) => {
+        const email = ctx.data.email?.toLowerCase();
+        console.log(`🔍 User creation hook triggered for: ${email}`);
+
+        // Auto-assign admin role if email matches configured admin
+        if (isAdmin(email)) {
+          console.log(`✅ Auto-assigning admin role to: ${email}`);
+          ctx.data.role = "admin";
+          ctx.data.emailVerified = true; // Auto-verify admin emails
+        } else {
+          ctx.data.role = "user";
+        }
+
+        return ctx;
+      },
+      "user.create.after": async (ctx) => {
+        const email = ctx.data.email?.toLowerCase();
+        if (isAdmin(email)) {
+          console.log(`🎉 Admin user created successfully: ${email}`);
+        }
+        return ctx;
+      },
+    },
 
     session: {
       expiresIn: 60 * 60 * 24 * 7, // 7 days
@@ -49,6 +208,9 @@ export const initAuth = () => {
         // Better Auth handles the redirect URI automatically based on baseURL.
         // It will be: ${baseURL}/callback/google
 
+        // Ensure email and profile scopes are requested
+        scope: ["email", "profile"],
+
         // Optional: Always ask user to select account
         prompt: "select_account",
         accessType: "offline",
@@ -68,8 +230,10 @@ export const initAuth = () => {
 
     plugins: [
       admin({
-        adminUserIds: [], // Admins can be managed via roles in DB
+        adminUserIds: [], // Managed via our custom plugin below
       }),
+      // Custom plugin for strict .env whitelist role enforcement
+      adminWhitelist,
     ],
 
     emailVerification: {

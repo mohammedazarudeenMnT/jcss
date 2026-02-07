@@ -6,6 +6,7 @@ import { IconCalendar, IconArrowLeft, IconFileText } from "@tabler/icons-react";
 import Link from "next/link";
 import { getNewsletterBySlug } from "@/lib/api/newsletter";
 import type { Newsletter } from "@/lib/types/newsletter";
+import { useScrollablePage } from "../ScrollablePageProvider";
 
 interface NewsletterDetailProps {
   slug: string;
@@ -20,6 +21,7 @@ export default function NewsletterDetail({
     initialData || null,
   );
   const [loading, setLoading] = useState(!initialData);
+  const { containerRef, handleScroll } = useScrollablePage();
 
   useEffect(() => {
     if (initialData) return;
@@ -172,7 +174,11 @@ export default function NewsletterDetail({
       </div>
 
       {/* Content Container - Scrollable */}
-      <main className="relative z-10 h-full overflow-y-auto pt-16">
+      <main
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="relative z-10 h-full overflow-y-auto pt-16"
+      >
         <article className="container mx-auto px-4 sm:px-6 lg:px-8 pb-12">
           {/* Back Button */}
           <div className="my-10 sm:my-8 pt-5">

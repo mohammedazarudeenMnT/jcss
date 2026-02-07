@@ -1,50 +1,61 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 
 export default function Life() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    resume: null as File | null
+    name: "",
+    email: "",
+    phone: "",
+    resume: null as File | null,
   });
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recaptchaLoaded, setRecaptchaLoaded] = useState(false);
   const recaptchaRef = useRef<HTMLDivElement>(null);
+  const isInitialized = useRef(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      resume: file
+      resume: file,
     }));
   };
 
   // Initialize reCAPTCHA when component mounts
   useEffect(() => {
     const initRecaptcha = () => {
-      if (window.grecaptcha && recaptchaRef.current && !recaptchaLoaded) {
+      if (window.grecaptcha && recaptchaRef.current && !isInitialized.current) {
         try {
+          // Check if the element has content (already rendered)
+          if (recaptchaRef.current.innerHTML !== "") {
+            isInitialized.current = true;
+            setRecaptchaLoaded(true);
+            return;
+          }
+
           window.grecaptcha.render(recaptchaRef.current, {
-            sitekey: process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+            sitekey:
+              process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
+              "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI",
             callback: (token: string) => setRecaptchaToken(token),
-            'expired-callback': () => setRecaptchaToken(null),
-            'error-callback': () => setRecaptchaToken(null)
+            "expired-callback": () => setRecaptchaToken(null),
+            "error-callback": () => setRecaptchaToken(null),
           });
+          isInitialized.current = true;
           setRecaptchaLoaded(true);
         } catch (error) {
-          console.error('Error rendering reCAPTCHA:', error);
+          console.error("Error rendering reCAPTCHA:", error);
         }
       }
     };
@@ -54,8 +65,12 @@ export default function Life() {
 
     // If grecaptcha is not ready, wait for it
     const checkInterval = setInterval(() => {
-      if (window.grecaptcha && !recaptchaLoaded) {
+      if (window.grecaptcha && !isInitialized.current) {
         initRecaptcha();
+        if (isInitialized.current) {
+          clearInterval(checkInterval);
+        }
+      } else if (isInitialized.current) {
         clearInterval(checkInterval);
       }
     }, 100);
@@ -69,7 +84,7 @@ export default function Life() {
       clearInterval(checkInterval);
       clearTimeout(timeout);
     };
-  }, [recaptchaLoaded]);
+  }, []);
 
   const resetRecaptcha = () => {
     if (window.grecaptcha) {
@@ -80,38 +95,38 @@ export default function Life() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!recaptchaToken) {
-      alert('Please complete the reCAPTCHA verification');
+      alert("Please complete the reCAPTCHA verification");
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Handle form submission with reCAPTCHA token
-      console.log('Form submitted:', { ...formData, recaptchaToken });
-      
+      console.log("Form submitted:", { ...formData, recaptchaToken });
+
       // Send the data to the backend API
-      const response = await fetch('/api/submit-career-form', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, recaptchaToken })
+      const response = await fetch("/api/submit-career-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, recaptchaToken }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit form');
+        throw new Error(errorData.error || "Failed to submit form");
       }
-      
+
       // Reset form after successful submission
-      setFormData({ name: '', email: '', phone: '', resume: null });
+      setFormData({ name: "", email: "", phone: "", resume: null });
       resetRecaptcha();
-      
-      alert('Form submitted successfully!');
+
+      alert("Form submitted successfully!");
     } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Error submitting form. Please try again.');
+      console.error("Error submitting form:", error);
+      alert("Error submitting form. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -139,16 +154,17 @@ export default function Life() {
               Life
             </h1>
             <p className="text-slate-200 text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 px-2 sm:px-0">
-              We always look for new minds, ideas and dynamism in our global 
-              consulting arena. Send across your interest with a detailed note and 
-              one of our team members will reach out to you for a suitable fit.
+              We always look for new minds, ideas and dynamism in our global
+              consulting arena. Send across your interest with a detailed note
+              and one of our team members will reach out to you for a suitable
+              fit.
             </p>
           </div>
 
           {/* Contact Form */}
-          <div 
+          <div
             className="bg-white bg-opacity-95 rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-6 shadow-xl animate-fade-in-up mx-2 sm:mx-0"
-            style={{ animationDelay: '0.3s' }}
+            style={{ animationDelay: "0.3s" }}
           >
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
               {/* Name Field */}
@@ -203,7 +219,8 @@ export default function Life() {
                     />
                   </label>
                   <p className="text-xs sm:text-sm text-gray-500 text-center sm:text-left">
-                    Accepted file format: PPTX, PDF. File size not more than 10 mb
+                    Accepted file format: PPTX, PDF. File size not more than 10
+                    mb
                   </p>
                 </div>
               </div>
@@ -213,7 +230,9 @@ export default function Life() {
                 <div ref={recaptchaRef} className="g-recaptcha"></div>
                 {!recaptchaLoaded && (
                   <div className="flex items-center justify-center p-4 bg-gray-100 rounded border-2 border-dashed border-gray-300">
-                    <span className="text-gray-500 text-sm">Loading reCAPTCHA...</span>
+                    <span className="text-gray-500 text-sm">
+                      Loading reCAPTCHA...
+                    </span>
                   </div>
                 )}
               </div>
@@ -225,11 +244,11 @@ export default function Life() {
                   disabled={!recaptchaToken || isSubmitting}
                   className={`w-full sm:w-auto text-white text-sm sm:text-base px-4 sm:px-6 py-1.5 sm:py-2 rounded-md transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
                     !recaptchaToken || isSubmitting
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-orange-400 hover:bg-orange-600'
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-orange-400 hover:bg-orange-600"
                   }`}
                 >
-                  {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
+                  {isSubmitting ? "SUBMITTING..." : "SUBMIT"}
                 </button>
               </div>
             </form>

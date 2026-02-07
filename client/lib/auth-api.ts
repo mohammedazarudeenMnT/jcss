@@ -43,23 +43,30 @@ export const login = async (
   password: string,
 ): Promise<AuthResponse> => {
   try {
-    console.log("🔄 Attempting login with:", {
-      email,
-      apiUrl: process.env.NEXT_PUBLIC_API_URL,
-    });
-    const response = await axiosInstance.post("/api/auth/sign-in/email", {
+    // Step 1: Authenticate with email/password
+    const authResponse = await axiosInstance.post("/api/auth/sign-in/email", {
       email,
       password,
     });
-    console.log("✅ Login successful:", response.data);
+
+    // Step 2: Fetch the session to get user data
+    const sessionResponse = await axiosInstance.get("/api/auth/get-session");
+
+    if (!sessionResponse.data?.user) {
+      throw new Error(
+        "Authentication succeeded but failed to retrieve user data",
+      );
+    }
+
     return {
       success: true,
-      data: response.data,
+      data: sessionResponse.data, // This contains {user, session}
     };
   } catch (error) {
     const err = error as AxiosError;
-    console.error("❌ Login failed:", err.response?.data || err.message);
-    throw new Error(err.response?.data?.message || "Login failed");
+    const errorMessage =
+      err.response?.data?.message || err.message || "Invalid email or password";
+    throw new Error(errorMessage);
   }
 };
 

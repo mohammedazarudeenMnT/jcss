@@ -12,6 +12,7 @@ import {
 import { useInView } from "react-intersection-observer";
 import { getNewsletters } from "@/lib/api/newsletter";
 import type { Newsletter } from "@/lib/types/newsletter";
+import { useScrollablePage } from "../ScrollablePageProvider";
 
 export default function Newsletters() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,6 +21,7 @@ export default function Newsletters() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const { containerRef, handleScroll } = useScrollablePage();
 
   const { ref, inView } = useInView({
     threshold: 0,
@@ -93,7 +95,7 @@ export default function Newsletters() {
   );
 
   return (
-    <div className="fixed inset-0 min-h-screen w-screen overflow-hidden bg-[#1d4e77]">
+    <div className="fixed inset-0 h-screen w-screen overflow-hidden bg-[#1d4e77]">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
@@ -107,7 +109,11 @@ export default function Newsletters() {
       </div>
 
       {/* Content Container */}
-      <main className="relative z-10 h-full overflow-y-auto flex flex-col pt-24">
+      <main
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="relative z-10 h-full overflow-y-auto flex flex-col pt-24"
+      >
         <div className="flex-1 flex flex-col py-6">
           {/* Header Section */}
           <header className="text-center mb-8 px-4">

@@ -20,14 +20,14 @@ interface GlobalScrollContextType {
 }
 
 const GlobalScrollContext = createContext<GlobalScrollContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export const useGlobalScroll = () => {
   const context = useContext(GlobalScrollContext);
   if (!context) {
     throw new Error(
-      "useGlobalScroll must be used within a GlobalScrollProvider"
+      "useGlobalScroll must be used within a GlobalScrollProvider",
     );
   }
   return context;
@@ -55,7 +55,10 @@ const SCROLLABLE_PAGES = [
   "/crew",
   "/experience",
   "/endorsement",
+  "/newsletters",
   "/contact-us",
+  "/admin/newsletters",
+  "/admin/newsletters/new",
 ];
 
 // Check if a path should be scrollable (includes dynamic routes)
@@ -63,6 +66,8 @@ const isScrollablePath = (path: string): boolean => {
   if (SCROLLABLE_PAGES.includes(path)) return true;
   // Newsletter detail pages (e.g., /newsletters/december-2025)
   if (path.startsWith("/newsletters/")) return true;
+  // All admin routes should have native scrolling
+  if (path.startsWith("/admin")) return true;
   return false;
 };
 
@@ -84,7 +89,7 @@ export default function GlobalScrollProvider({
   // Calculate total screens across all pages
   const totalScreens = PAGE_CONFIGS.reduce(
     (sum, page) => sum + page.screens,
-    0
+    0,
   );
 
   // Check if device is mobile
@@ -167,8 +172,10 @@ export default function GlobalScrollProvider({
     const handleWheel = (e: WheelEvent) => {
       // Check if scroll is inside chat widget or any scrollable container
       const target = e.target as HTMLElement;
-      const isInsideChatWidget = target.closest('[class*="jcss-chat"], [id*="jcss-chat"], iframe, [class*="chat"], [data-chat-widget]');
-      
+      const isInsideChatWidget = target.closest(
+        '[class*="jcss-chat"], [id*="jcss-chat"], iframe, [class*="chat"], [data-chat-widget]',
+      );
+
       // Don't prevent default if scrolling inside chat widget
       if (isInsideChatWidget) return;
 
